@@ -7,19 +7,18 @@
 ## -- openvpn -- ##
 ## -- vpnbooks -- ##
 ####################################
-#File hierarchy setup
+#key variable setup
 
 path="/home/vpnbook"        #directory path to your vpnbook folder that contains your VPN's
 defaultUDP="udp25000"       #set a default UDP number to use (whichever you find more reliable)
 defaultTCP="tcp80"          #set a default TCP number to use (whichever you find more reliable)
 
-####################################
 ##ANSI COLOUR CODES https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html#colors
 
-RED='\033[31;1m'        #red ANSI escape code
-GREEN='\033[32;1m'      #green ANSI escape code
-CYAN='\033[36;1m'       #cyan ANSI escape code
-NC='\033[0m'            #No Color
+Error='\033[31;1m'      #error colour - red ANSI escape code
+UDPcolour='\033[32;1m'  #UDP relevent colour - green ANSI escape code
+TCPcolour='\033[36;1m'  #TCP relevent colour - cyan ANSI escape code
+NC='\033[0m'            #Base colour - No added Color
 
 ####################################
 
@@ -68,22 +67,22 @@ echo $VPNLookup | awk -F "$path" '{print $2}' | awk -F "/" '{print $2}'
 MethodLookup=""
 Select_Method(){
 
-echo -e "\nSelect VPN method (${GREEN} [udp]${NC} - 1 / ${CYAN} [tcp]${NC} -  2)"
+echo -e "\nSelect VPN method (${UDPcolour} [udp]${NC} - 1 / ${TCPcolour} [tcp]${NC} -  2)"
 read -p '(1 / 2):' Method
 
 
 if [ -z $Method ] || [ $Method -lt 1 ] || [ $Method -gt 2 ]
 	then
-	echo -e "${RED} Failed input, enter again\n${NC}"
+	echo -e "${Error} Failed input, enter again\n${NC}"
 	Select_Method
 	else if [ $Method -eq 1 ]
 		then
 		MethodLookup=$defaultUDP		                            #USE udp25000 as its more reliable
-		echo -e "${GREEN}"$MethodLookup "selected"${NC}
+		echo -e "${UDPcolour}"$MethodLookup "selected"${NC}
 		else if [ $Method -eq 2 ]
 			then 
 			MethodLookup=$defaultTCP
-			echo -e ${CYAN}$MethodLookup "selected"${NC}
+			echo -e ${TCPcolour}$MethodLookup "selected"${NC}
 		fi
 	fi
 fi
@@ -121,9 +120,9 @@ VPNLauncher=${MethodArray[0]}
 
 if [ $MethodLookup == "udp25000" ]
 	then
-	echo -e ${GREEN}
+	echo -e ${UDPcolour}
 	else
-	echo -e ${CYAN}
+	echo -e ${TCPcolour}
 fi
 echo -e "############\nsuccessfully found Launcher: " $VPNLauncher"\n############${NC}"
 
