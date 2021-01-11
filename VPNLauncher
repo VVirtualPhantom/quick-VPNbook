@@ -1,0 +1,137 @@
+#!/bin/bash
+####################################
+#### CREATED BY: VVirtualPhantom
+#### OPEN SOURCE - feel free to use
+####################################
+## REQUIRED COMPONENTS ##
+## -- openvpn -- ##
+## -- vpnbooks -- ##
+####################################
+#File hierarchy setup
+
+path="/home/vpnbook"        #directory path to your vpnbook folder that contains your VPN's
+defaultUDP="udp25000"       #set a default UDP number to use (whichever you find more reliable)
+defaultTCP="tcp80"          #set a default TCP number to use (whichever you find more reliable)
+
+####################################
+##ANSI COLOUR CODES https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html#colors
+
+RED='\033[31;1m'        #red ANSI escape code
+GREEN='\033[32;1m'      #green ANSI escape code
+CYAN='\033[36;1m'       #cyan ANSI escape code
+NC='\033[0m'            #No Color
+
+####################################
+
+
+
+echo "establishing VPN setup"
+
+
+############################
+#locate and store installed vpn directories
+############################
+
+declare -a AvaliableVPN=($(ls -d $path/*/)) 
+echo "Located avaliable VPN's"
+echo -e "\n############\nAVALIABLE VPN'S\n############"
+
+############################
+#list all avaliable VPN's
+############################
+
+VPNIndex=0
+for VPN in ${AvaliableVPN[@]}
+	do
+	echo -e $VPNIndex" \c"
+  echo $VPN | awk -F "$path" '{print $2}' | awk -F "/" '{print $2}'
+	let VPNIndex=${VPNIndex}+1
+done
+
+echo -e "############\n"
+
+############################
+#ask to select VPN
+############################
+
+echo "Select Installed VPN Index"
+read -p 'VPN:' SelectedVPN
+
+VPNLookup=${AvaliableVPN[SelectedVPN]}
+echo $VPNLookup | awk -F "$path" '{print $2}' | awk -F "/" '{print $2}'
+
+
+############################
+#ask to select VPN method
+############################
+
+MethodLookup=""
+Select_Method(){
+
+echo -e "\nSelect VPN method (${GREEN} [udp]${NC} - 1 / ${CYAN} [tcp]${NC} -  2)"
+read -p '(1 / 2):' Method
+
+
+if [ -z $Method ] || [ $Method -lt 1 ] || [ $Method -gt 2 ]
+	then
+	echo -e "${RED} Failed input, enter again\n${NC}"
+	Select_Method
+	else if [ $Method -eq 1 ]
+		then
+		MethodLookup=$defaultUDP		                            #USE udp25000 as its more reliable
+		echo -e "${GREEN}"$MethodLookup "selected"${NC}
+		else if [ $Method -eq 2 ]
+			then 
+			MethodLookup=$defaultTCP
+			echo -e ${CYAN}$MethodLookup "selected"${NC}
+		fi
+	fi
+fi
+}
+
+Select_Method
+
+############################
+#locate VPN file based on choices
+############################
+
+declare -a MethodArray=($(ls $VPNLookup | grep $MethodLookup ))
+
+VPNLauncher=
+LauncherCheck (){
+#echo "launched" #///// DEBUG /////
+
+if [ -z $MethodArray ]
+then
+echo "NO LAUNCHER LOCATED"
+
+else
+LOOKUPINDEX=0
+for LOOKUP in ${MethodArray[@]}
+	do
+	#echo $LOOKUP #///// DEBUG /////
+	let  LOOKUPINDEX=${LOOKUPINDEX}+1
+	if [[ LOOKUPINDEX -gt 1 ]]
+		then
+		echo "multiple VPN versions located"
+		break
+	fi
+done
+VPNLauncher=${MethodArray[0]}
+
+if [ $MethodLookup == "udp25000" ]
+	then
+	echo -e ${GREEN}
+	else
+	echo -e ${CYAN}
+fi
+echo -e "############\nsuccessfully found Launcher: " $VPNLauncher"\n############${NC}"
+
+fi
+}
+
+LauncherCheck
+
+cd ${VPNLookup}
+pwd #///// DEBUG /////
+sudo openvpn --config $VPNLauncher 
